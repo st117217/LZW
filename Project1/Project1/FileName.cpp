@@ -5,46 +5,17 @@
 #include <iostream>
 #include <sstream>
 
-class LZW
-{
-public:
-	LZW();
-	~LZW();
-	std::vector<int> encode(std::string s1);
-	std::string decode(std::vector<int> op);
-	std::string getTextInString();
-
-	void printText();
-	void vectorToFile(std::vector<int> numbers);
-	void printVector(std::vector<int> numbers);
-	void printDecodingText(std::vector<int> numbers);
-	void writeDecodingTextInFile(std::string s1);
-	std::vector<int> readVectorFromFile();
-
-private:
-};
-
-
 int main(int argc, char* argv[])
 {
-	setlocale(LC_ALL, "Russian");
-
-	LZW lzw;
-	std::vector<int> numbers = lzw.encode(lzw.getTextInString());
-
-	lzw.vectorToFile(numbers);
-	lzw.writeDecodingTextInFile(lzw.decode(numbers));
+	std::locale::global(std::locale("ru_RU.UTF-8"));
+	
 
 	return EXIT_SUCCESS;
 }
 
-LZW::LZW() {}
-
-LZW::~LZW() {}
-
-
-std::vector<int> LZW::encode(std::string s1)
+std::vector<int> encode(std::string s1)
 {
+	std::locale::global(std::locale("ru_RU.UTF-8"));
 
 	std::unordered_map<std::string, int> dictionary;
 	for (int i = 0; i <= 255; ++i) {
@@ -52,11 +23,12 @@ std::vector<int> LZW::encode(std::string s1)
 		ch += char(i);
 		dictionary[ch] = i;
 	}
-	std::string a = "", b = "";
+	std::string a = "";
+	std::string b = "";
 	a += s1[0];
 	int code = 256;
 	std::vector<int> output_code;
-	for (int i = 0; i < s1.length(); i++)
+	for (int i = 0; i < s1.length(); ++i)
 	{
 		if (i != s1.length() - 1)
 		{
@@ -68,7 +40,7 @@ std::vector<int> LZW::encode(std::string s1)
 		else {
 			output_code.push_back(dictionary[a]);
 			dictionary[a + b] = code;
-			code++;
+			++code;
 			a = b;
 		}
 		b = "";
@@ -76,25 +48,27 @@ std::vector<int> LZW::encode(std::string s1)
 	output_code.push_back(dictionary[a]);
 	return output_code;
 }
-std::string LZW::decode(std::vector<int> op)
+std::string decode(std::vector<int> op)
 {
-	setlocale(LC_ALL, "Russian");
+	
+	std::locale::global(std::locale("ru_RU.UTF-8"));
 
 
 	std::unordered_map<int, std::string> dictionary;
-	for (int i = 0; i <= 255; i++) {
+	for (int i = 0; i <= 255; ++i) {
 		std::string ch = "";
 		ch += char(i);
 		dictionary[i] = ch;
 	}
-	int old = op[0], n;
+	int old = op[0];
+	int n = 0;
 	std::string s = dictionary[old];
 	std::string c = "";
 	std::string output = "";
 	c += s[0];
 	output += s;
 	int count = 256;
-	for (int i = 0; i < op.size() - 1; i++) {
+	for (int i = 0; i < op.size() - 1; ++i) {
 		n = op[i + 1];
 		if (dictionary.find(n) == dictionary.end()) {
 			s = dictionary[old];
@@ -107,20 +81,16 @@ std::string LZW::decode(std::vector<int> op)
 		c = "";
 		c += s[0];
 		dictionary[count] = dictionary[old] + c;
-		count++;
+		++count;
 		old = n;
 	}
 	return output;
 }
 
-std::string LZW::getTextInString()
+std::string readTextFromFile()
 {
 	std::ifstream file("text.txt");
 
-	if (!file.is_open()) {
-		std::cerr << "Невозможно открыть файл text.txt" << std::endl;
-		return "1";
-	}
 
 	std::string str;
 	std::string s;
@@ -134,36 +104,36 @@ std::string LZW::getTextInString()
 	return str;
 }
 
-void LZW::printText()
+void printText()
 {
 	std::string str;
-	str = getTextInString();
+	str = readTextFromFile();
 	std::cout << str;
 }
-void LZW::vectorToFile(std::vector<int> numbers)
+void writeVectorToFile(std::vector<int> numbers)
 {
 	std::ofstream output_file("vector.txt");
 	std::ostream_iterator<int> output_iterator(output_file, " ");
 	std::copy(numbers.begin(), numbers.end(), output_iterator);
 	output_file.close();
 }
-void LZW::printVector(std::vector<int> numbers)
+void printVector(std::vector<int> numbers)
 {
 	std::copy(numbers.begin(), numbers.end(), std::ostream_iterator<int>(std::cout, " "));
 }
-void LZW::printDecodingText(std::vector<int> numbers)
+void printDecodingText(std::vector<int> numbers)
 {
 	std::cout << decode(numbers);
 }
 
-void LZW::writeDecodingTextInFile(std::string s1)
+void writeDecodingTextInFile(std::string s1)
 {
 	std::ofstream outFile("output.txt");
 	outFile << s1;
 	outFile.close();
 }
 
-std::vector<int> LZW::readVectorFromFile()
+std::vector<int> readVectorFromFile()
 {
 	std::ifstream inFile("vector.txt");
 
@@ -181,5 +151,17 @@ std::vector<int> LZW::readVectorFromFile()
 		}
 	}
 	inFile.close();
+
 	return numbers;
+}
+
+void decodingfile()
+{
+	std::vector<int> numbers=readVectorFromFile();
+	writeDecodingTextInFile(decode(numbers));
+}
+void encodingfile()
+{
+	std::string text = readTextFromFile();
+	writeVectorToFile(encode(text));
 }
