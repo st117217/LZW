@@ -3,7 +3,7 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include<sstream>
+#include <sstream>
 
 class LZW
 {
@@ -18,6 +18,8 @@ public:
 	void vectorToFile(std::vector<int> numbers);
 	void printVector(std::vector<int> numbers);
 	void printDecodingText(std::vector<int> numbers);
+	void writeDecodingTextInFile(std::string s1);
+	std::vector<int> readVectorFromFile();
 
 private:
 };
@@ -28,26 +30,10 @@ int main(int argc, char* argv[])
 	setlocale(LC_ALL, "Russian");
 
 	LZW lzw;
-
-	std::cout << std::endl;
-	std::cout << "исходный текст" << std::endl;
-	std::cout << std::endl;
-	std::cout << std::endl;
-
-	lzw.printText();
 	std::vector<int> numbers = lzw.encode(lzw.getTextInString());
 
-	std::cout << std::endl;
 	lzw.vectorToFile(numbers);
-	std::cout << "закодированный текст" << std::endl;
-	std::cout << std::endl;
-	lzw.printVector(numbers);
-	std::cout << std::endl;
-	std::cout << std::endl;
-	std::cout << "декодированный текст" << std::endl;
-	std::cout << std::endl;
-
-	lzw.printDecodingText(numbers);
+	lzw.writeDecodingTextInFile(lzw.decode(numbers));
 
 	return EXIT_SUCCESS;
 }
@@ -59,6 +45,7 @@ LZW::~LZW() {}
 
 std::vector<int> LZW::encode(std::string s1)
 {
+
 	std::unordered_map<std::string, int> dictionary;
 	for (int i = 0; i <= 255; ++i) {
 		std::string ch = "";
@@ -91,6 +78,9 @@ std::vector<int> LZW::encode(std::string s1)
 }
 std::string LZW::decode(std::vector<int> op)
 {
+	setlocale(LC_ALL, "Russian");
+
+
 	std::unordered_map<int, std::string> dictionary;
 	for (int i = 0; i <= 255; i++) {
 		std::string ch = "";
@@ -122,6 +112,7 @@ std::string LZW::decode(std::vector<int> op)
 	}
 	return output;
 }
+
 std::string LZW::getTextInString()
 {
 	std::ifstream file("text.txt");
@@ -163,4 +154,32 @@ void LZW::printVector(std::vector<int> numbers)
 void LZW::printDecodingText(std::vector<int> numbers)
 {
 	std::cout << decode(numbers);
+}
+
+void LZW::writeDecodingTextInFile(std::string s1)
+{
+	std::ofstream outFile("output.txt");
+	outFile << s1;
+	outFile.close();
+}
+
+std::vector<int> LZW::readVectorFromFile()
+{
+	std::ifstream inFile("vector.txt");
+
+	std::vector<int> numbers;
+
+	std::string line;
+	while (std::getline(inFile, line)) 
+	{
+		std::stringstream ss(line);
+
+		int number;
+		while (ss >> number) 
+		{
+			numbers.push_back(number);
+		}
+	}
+	inFile.close();
+	return numbers;
 }
